@@ -23,7 +23,7 @@ const Header = () => {
           
           <div className="flex justify-center">
             <Link to="/" aria-label="Home">
-              <ScampLogo className="h-12 transform scale-y-75" />
+              <ScampLogo className="h-16 transform scale-y-75" />
             </Link>
           </div>
           
@@ -40,7 +40,7 @@ const Header = () => {
                   aria-label="Home"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <ScampLogo className="h-12 transform scale-y-75" />
+                  <ScampLogo className="h-20 transform scale-y-75" />
                 </Link>
                 <button 
                   onClick={() => setMobileMenuOpen(false)} 
@@ -113,7 +113,7 @@ const Header = () => {
           
           <div className="w-1/3 flex justify-center">
             <Link to="/" aria-label="Home">
-              <ScampLogo className="h-16 md:h-20 transform scale-y-75" />
+              <ScampLogo className="h-24 md:h-28 transform scale-y-75" />
             </Link>
           </div>
           
