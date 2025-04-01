@@ -95,76 +95,81 @@ const PRODUCT_QUERY = `
  * Fetch all products using Hydrogen
  */
 export async function fetchProducts(): Promise<Product[]> {
-  // For development/fallback, return mock data
-  // In a production app, this would be replaced by proper error handling
-  
   try {
-    // This would be used when integrated with Shopify
-    // const shop = useShopify();
-    // Using fetch directly instead of fetchSync which is not available
-    // const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
-    //   },
-    //   body: JSON.stringify({ query: PRODUCTS_QUERY }),
-    // });
-    // const data = await response.json();
+    // Using Shopify GraphQL API
+    const shop = useShopify();
     
-    // return data.products.edges.map(edge => {
-    //   return {
-    //     id: edge.node.id,
-    //     title: edge.node.title,
-    //     description: edge.node.description,
-    //     price: edge.node.priceRange.minVariantPrice.amount,
-    //     image: edge.node.featuredImage.url,
-    //   };
-    // });
-    
-    // MOCK DATA - Used for development and when Shopify connection fails
-    const mockProducts: Product[] = [
-      {
-        id: "1",
-        title: "Sample Product 1",
-        description: "This is a sample product description. It would contain details about the product features and benefits.",
-        price: "19.99",
-        image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+1"
-      },
-      {
-        id: "2",
-        title: "Sample Product 2",
-        description: "Another sample product with a detailed description to show how the content would appear on the product page.",
-        price: "29.99",
-        image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+2"
-      },
-      {
-        id: "3",
-        title: "Sample Product 3",
-        description: "A third sample product with details about what makes it special and why customers should buy it.",
-        price: "39.99",
-        image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+3"
-      },
-    ];
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return mockProducts;
+    try {
+      const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
+        },
+        body: JSON.stringify({ query: PRODUCTS_QUERY }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Shopify API response:", data);
+      
+      if (data.data && data.data.products && data.data.products.edges) {
+        return data.data.products.edges.map((edge: any) => {
+          return {
+            id: edge.node.id,
+            title: edge.node.title,
+            description: edge.node.description,
+            price: edge.node.priceRange.minVariantPrice.amount,
+            image: edge.node.featuredImage?.url || "https://placehold.co/500x500/e2e8f0/1e293b?text=No+Image",
+          };
+        });
+      } else {
+        console.error("Unexpected API response structure:", data);
+        throw new Error("Invalid API response structure");
+      }
+    } catch (apiError) {
+      console.error("Error fetching from Shopify API:", apiError);
+      // Fall back to mock data
+      return getFallbackProducts();
+    }
   } catch (error) {
-    console.error("Error fetching products:", error);
-    // Return mock data as fallback
-    return [
-      {
-        id: "1",
-        title: "Sample Product 1",
-        description: "This is a sample product description. It would contain details about the product features and benefits.",
-        price: "19.99",
-        image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+1"
-      },
-      // ... additional fallback products
-    ];
+    console.error("Error in fetchProducts:", error);
+    return getFallbackProducts();
   }
+}
+
+// Fallback mock products for development/error scenarios
+function getFallbackProducts(): Product[] {
+  console.log("Using fallback mock products");
+  const mockProducts: Product[] = [
+    {
+      id: "1",
+      title: "Sample Product 1",
+      description: "This is a sample product description. It would contain details about the product features and benefits.",
+      price: "19.99",
+      image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+1"
+    },
+    {
+      id: "2",
+      title: "Sample Product 2",
+      description: "Another sample product with a detailed description to show how the content would appear on the product page.",
+      price: "29.99",
+      image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+2"
+    },
+    {
+      id: "3",
+      title: "Sample Product 3",
+      description: "A third sample product with details about what makes it special and why customers should buy it.",
+      price: "39.99",
+      image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+3"
+    },
+  ];
+  
+  // Simulate API delay
+  return mockProducts;
 }
 
 /**
@@ -173,49 +178,55 @@ export async function fetchProducts(): Promise<Product[]> {
 export async function fetchProductById(productId: string | undefined): Promise<Product | null> {
   if (!productId) return null;
   
-  // For development/fallback, use mock data
   try {
-    // This would be used when integrated with Shopify
-    // const shop = useShopify();
-    // Using fetch directly instead of fetchSync
-    // const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
-    //   },
-    //   body: JSON.stringify({ 
-    //     query: PRODUCT_QUERY, 
-    //     variables: { id: productId } 
-    //   }),
-    // });
-    // const data = await response.json();
+    // Using Shopify GraphQL API
+    const shop = useShopify();
     
-    // const product = data.product;
-    // if (!product) return null;
-    
-    // return {
-    //   id: product.id,
-    //   title: product.title,
-    //   description: product.description,
-    //   price: product.priceRange.minVariantPrice.amount,
-    //   image: product.featuredImage.url,
-    //   images: product.images.edges.map(edge => edge.node.url),
-    //   variants: product.variants.edges.map(edge => ({
-    //     id: edge.node.id,
-    //     title: edge.node.title,
-    //     price: edge.node.priceV2.amount,
-    //     available: edge.node.availableForSale
-    //   }))
-    // };
-    
-    // Mock data for development
-    const products = await fetchProducts();
-    const product = products.find(p => p.id === productId);
-    
-    return product || null;
+    try {
+      const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
+        },
+        body: JSON.stringify({ 
+          query: PRODUCT_QUERY, 
+          variables: { id: `gid://shopify/Product/${productId}` } 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Shopify API product response:", data);
+      
+      const product = data.data?.product;
+      if (!product) return null;
+      
+      return {
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        price: product.priceRange.minVariantPrice.amount,
+        image: product.featuredImage?.url || "https://placehold.co/500x500/e2e8f0/1e293b?text=No+Image",
+        images: product.images?.edges.map((edge: any) => edge.node.url) || [],
+        variants: product.variants?.edges.map((edge: any) => ({
+          id: edge.node.id,
+          title: edge.node.title,
+          price: edge.node.priceV2.amount,
+          available: edge.node.availableForSale
+        })) || []
+      };
+    } catch (apiError) {
+      console.error("Error fetching product from Shopify API:", apiError);
+      // Fall back to mock data
+      const products = await getFallbackProducts();
+      return products.find(p => p.id === productId) || null;
+    }
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error("Error in fetchProductById:", error);
     return null;
   }
 }
