@@ -1,9 +1,5 @@
 
 import { cn } from "@/lib/utils";
-import { 
-  useShop,
-  useProduct,
-} from "@shopify/hydrogen-react";
 import { useShopify } from "../hooks/useShopify";
 
 // Define types for our data
@@ -96,11 +92,14 @@ const PRODUCT_QUERY = `
  */
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    // Using Shopify GraphQL API
     const shop = useShopify();
+    const storeDomain = shop.storeDomain.replace('https://', '');
+    
+    console.log("Fetching products from domain:", storeDomain);
+    console.log("Using token:", shop.storefrontToken);
     
     try {
-      const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
+      const response = await fetch(`https://${storeDomain}/api/2023-07/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,6 +109,8 @@ export async function fetchProducts(): Promise<Product[]> {
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("HTTP error response:", response.status, errorText);
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
@@ -119,7 +120,7 @@ export async function fetchProducts(): Promise<Product[]> {
       if (data.data && data.data.products && data.data.products.edges) {
         return data.data.products.edges.map((edge: any) => {
           return {
-            id: edge.node.id,
+            id: edge.node.id.split('/').pop(),
             title: edge.node.title,
             description: edge.node.description,
             price: edge.node.priceRange.minVariantPrice.amount,
@@ -168,7 +169,6 @@ function getFallbackProducts(): Product[] {
     },
   ];
   
-  // Simulate API delay
   return mockProducts;
 }
 
@@ -179,11 +179,14 @@ export async function fetchProductById(productId: string | undefined): Promise<P
   if (!productId) return null;
   
   try {
-    // Using Shopify GraphQL API
     const shop = useShopify();
+    const storeDomain = shop.storeDomain.replace('https://', '');
+    
+    console.log("Fetching product by ID:", productId);
+    console.log("Using domain:", storeDomain);
     
     try {
-      const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
+      const response = await fetch(`https://${storeDomain}/api/2023-07/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -196,6 +199,8 @@ export async function fetchProductById(productId: string | undefined): Promise<P
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("HTTP error response:", response.status, errorText);
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
@@ -206,7 +211,7 @@ export async function fetchProductById(productId: string | undefined): Promise<P
       if (!product) return null;
       
       return {
-        id: product.id,
+        id: product.id.split('/').pop(),
         title: product.title,
         description: product.description,
         price: product.priceRange.minVariantPrice.amount,
