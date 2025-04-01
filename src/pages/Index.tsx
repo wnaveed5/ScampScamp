@@ -1,15 +1,18 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProducts } from "@/lib/api";
+import { useShopify } from "../hooks/useShopify";
 
 const ProductListingPage = () => {
+  const shop = useShopify();
+  
   const { data: products, isLoading, error } = useQuery({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: () => fetchProducts(shop.storeDomain, shop.storefrontToken),
   });
 
   if (error) {

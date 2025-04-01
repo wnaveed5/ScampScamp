@@ -1,6 +1,5 @@
 
 import { cn } from "@/lib/utils";
-import { useShopify } from "../hooks/useShopify";
 
 // Define types for our data
 export interface Product {
@@ -88,22 +87,21 @@ const PRODUCT_QUERY = `
 `;
 
 /**
- * Fetch all products using Hydrogen
+ * Fetch all products using Shopify Storefront API
  */
-export async function fetchProducts(): Promise<Product[]> {
+export async function fetchProducts(storeDomain: string, storefrontToken: string): Promise<Product[]> {
   try {
-    const shop = useShopify();
-    const storeDomain = shop.storeDomain.replace('https://', '');
+    const cleanDomain = storeDomain.replace('https://', '');
     
-    console.log("Fetching products from domain:", storeDomain);
-    console.log("Using token:", shop.storefrontToken);
+    console.log("Fetching products from domain:", cleanDomain);
+    console.log("Using token:", storefrontToken);
     
     try {
-      const response = await fetch(`https://${storeDomain}/api/2023-07/graphql.json`, {
+      const response = await fetch(`https://${cleanDomain}/api/2025-01/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
+          'X-Shopify-Storefront-Access-Token': storefrontToken,
         },
         body: JSON.stringify({ query: PRODUCTS_QUERY }),
       });
@@ -173,24 +171,23 @@ function getFallbackProducts(): Product[] {
 }
 
 /**
- * Fetch a single product by ID using Hydrogen
+ * Fetch a single product by ID using Shopify Storefront API
  */
-export async function fetchProductById(productId: string | undefined): Promise<Product | null> {
+export async function fetchProductById(productId: string | undefined, storeDomain: string, storefrontToken: string): Promise<Product | null> {
   if (!productId) return null;
   
   try {
-    const shop = useShopify();
-    const storeDomain = shop.storeDomain.replace('https://', '');
+    const cleanDomain = storeDomain.replace('https://', '');
     
     console.log("Fetching product by ID:", productId);
-    console.log("Using domain:", storeDomain);
+    console.log("Using domain:", cleanDomain);
     
     try {
-      const response = await fetch(`https://${storeDomain}/api/2023-07/graphql.json`, {
+      const response = await fetch(`https://${cleanDomain}/api/2025-01/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
+          'X-Shopify-Storefront-Access-Token': storefrontToken,
         },
         body: JSON.stringify({ 
           query: PRODUCT_QUERY, 
@@ -227,7 +224,7 @@ export async function fetchProductById(productId: string | undefined): Promise<P
     } catch (apiError) {
       console.error("Error fetching product from Shopify API:", apiError);
       // Fall back to mock data
-      const products = await getFallbackProducts();
+      const products = getFallbackProducts();
       return products.find(p => p.id === productId) || null;
     }
   } catch (error) {

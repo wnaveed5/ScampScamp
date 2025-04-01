@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProductById } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
+import { useShopify } from "../hooks/useShopify";
 
 const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const shop = useShopify();
   
   const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
-    queryFn: () => fetchProductById(productId),
+    queryFn: () => fetchProductById(productId, shop.storeDomain, shop.storefrontToken),
     enabled: !!productId,
   });
 

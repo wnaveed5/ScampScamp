@@ -17,7 +17,7 @@ const App = () => (
       <ShopifyProvider 
         storeDomain={"aji4t0-cb.myshopify.com"}
         storefrontAccessToken={"e01d5c460eac1f4f6257b8b621710c83"}
-        storefrontApiVersion="2023-07"
+        storefrontApiVersion="2025-01"
       >
         <Toaster />
         <Sonner />

@@ -13,7 +13,7 @@ export function ShopifyProvider({
   children, 
   storeDomain = "your-store.myshopify.com",
   storefrontAccessToken = "your-storefront-access-token",
-  storefrontApiVersion = "2023-07"
+  storefrontApiVersion = "2025-01"
 }: ShopifyProviderProps) {
   return (
     <HydrogenProvider
