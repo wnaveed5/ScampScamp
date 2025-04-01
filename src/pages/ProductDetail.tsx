@@ -1,0 +1,76 @@
+
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { fetchProductById } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
+
+const ProductDetail = () => {
+  const { productId } = useParams();
+  const navigate = useNavigate();
+  
+  const { data: product, isLoading, error } = useQuery({
+    queryKey: ["product", productId],
+    queryFn: () => fetchProductById(productId),
+    enabled: !!productId,
+  });
+
+  if (error) {
+    console.error("Error loading product:", error);
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate(-1)} 
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Products
+      </Button>
+      
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <Skeleton className="aspect-square w-full" />
+          </div>
+          <div>
+            <Skeleton className="h-10 w-3/4 mb-4" />
+            <Skeleton className="h-6 w-1/3 mb-8" />
+            <Skeleton className="h-24 w-full mb-6" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      ) : product ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-gray-100 aspect-square relative">
+            {product.image && (
+              <img
+                src={product.image}
+                alt={product.title}
+                className="object-contain absolute inset-0 w-full h-full"
+              />
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
+            <p className="text-2xl font-medium mb-6">${product.price}</p>
+            <div className="prose mb-6">
+              <p>{product.description}</p>
+            </div>
+            <Button className="w-full md:w-auto">Add to Cart</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-xl">Product not found</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ProductDetail;
