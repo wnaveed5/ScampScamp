@@ -1,9 +1,8 @@
 
-import { useContext } from "react";
-import { ShopifyContext } from "@shopify/hydrogen-react";
+import { useShop } from "@shopify/hydrogen-react";
 
 export function useShopify() {
-  const context = useContext(ShopifyContext);
+  const context = useShop();
   
   if (context === undefined) {
     throw new Error('useShopify must be used within a ShopifyProvider');

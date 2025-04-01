@@ -1,11 +1,11 @@
 
 import { cn } from "@/lib/utils";
 import { 
-  useShopQuery, 
-  gql, 
-  useProduct, 
-  useProductOptions 
+  fetchSync, 
+  useShop,
+  useProduct,
 } from "@shopify/hydrogen-react";
+import { useShopify } from "../hooks/useShopify";
 
 // Define types for our data
 export interface Product {
@@ -26,7 +26,7 @@ export interface ProductVariant {
 }
 
 // GraphQL query for fetching all products
-const PRODUCTS_QUERY = gql`
+const PRODUCTS_QUERY = `
   query Products {
     products(first: 10) {
       edges {
@@ -51,7 +51,7 @@ const PRODUCTS_QUERY = gql`
 `;
 
 // GraphQL query for fetching a single product by ID
-const PRODUCT_QUERY = gql`
+const PRODUCT_QUERY = `
   query Product($id: ID!) {
     product(id: $id) {
       id
@@ -101,9 +101,9 @@ export async function fetchProducts(): Promise<Product[]> {
   
   try {
     // This would be used when integrated with Shopify
-    // const { data } = await useShopQuery({
-    //   query: PRODUCTS_QUERY,
-    // });
+    // const shop = useShopify();
+    // const response = await fetchSync(shop.storefront, PRODUCTS_QUERY);
+    // const data = await response.json();
     
     // return data.products.edges.map(edge => {
     //   return {
@@ -169,10 +169,11 @@ export async function fetchProductById(productId: string | undefined): Promise<P
   // For development/fallback, use mock data
   try {
     // This would be used when integrated with Shopify
-    // const { data } = await useShopQuery({
-    //   query: PRODUCT_QUERY,
+    // const shop = useShopify();
+    // const response = await fetchSync(shop.storefront, PRODUCT_QUERY, {
     //   variables: { id: productId }
     // });
+    // const data = await response.json();
     
     // const product = data.product;
     // if (!product) return null;
