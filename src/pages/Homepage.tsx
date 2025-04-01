@@ -15,6 +15,7 @@ import {
 import { useShopify } from "../hooks/useShopify";
 import { fetchProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import Header from "@/components/Header";
 
 const Homepage = () => {
   const shop = useShopify();
@@ -26,6 +27,9 @@ const Homepage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <Header />
+
       {/* Hero Section */}
       <section className="relative h-screen">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-50" />
