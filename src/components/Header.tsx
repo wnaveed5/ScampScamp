@@ -23,7 +23,7 @@ const Header = () => {
       
       <div className="w-1/3 flex justify-center">
         <Link to="/" aria-label="Home">
-          <ScampLogo className="h-6 md:h-8" />
+          <ScampLogo className="h-10 md:h-12 transform scale-y-75" />
         </Link>
       </div>
       
