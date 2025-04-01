@@ -17,7 +17,9 @@ export function ShopifyProvider({
     <HydrogenProvider
       storeDomain={`https://${storeDomain}`}
       storefrontToken={storefrontAccessToken}
-      storefrontApiVersion="2023-07" // Update this to the latest version
+      storefrontApiVersion="2023-07"
+      countryIsoCode="US"
+      languageIsoCode="EN"
     >
       {children}
     </HydrogenProvider>

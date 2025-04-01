@@ -15,8 +15,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ShopifyProvider 
-        storeDomain={import.meta.env.VITE_SHOPIFY_DOMAIN || "your-store.myshopify.com"}
-        storefrontAccessToken={import.meta.env.VITE_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "your-token"}
+        storeDomain={"your-store.myshopify.com"}
+        storefrontAccessToken={"e01d5c460eac1f4f6257b8b621710c83"}
       >
         <Toaster />
         <Sonner />

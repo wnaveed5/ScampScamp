@@ -1,7 +1,6 @@
 
 import { cn } from "@/lib/utils";
 import { 
-  fetchSync, 
   useShop,
   useProduct,
 } from "@shopify/hydrogen-react";
@@ -102,7 +101,15 @@ export async function fetchProducts(): Promise<Product[]> {
   try {
     // This would be used when integrated with Shopify
     // const shop = useShopify();
-    // const response = await fetchSync(shop.storefront, PRODUCTS_QUERY);
+    // Using fetch directly instead of fetchSync which is not available
+    // const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
+    //   },
+    //   body: JSON.stringify({ query: PRODUCTS_QUERY }),
+    // });
     // const data = await response.json();
     
     // return data.products.edges.map(edge => {
@@ -170,8 +177,17 @@ export async function fetchProductById(productId: string | undefined): Promise<P
   try {
     // This would be used when integrated with Shopify
     // const shop = useShopify();
-    // const response = await fetchSync(shop.storefront, PRODUCT_QUERY, {
-    //   variables: { id: productId }
+    // Using fetch directly instead of fetchSync
+    // const response = await fetch(`https://${shop.storeDomain}/api/2023-07/graphql.json`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'X-Shopify-Storefront-Access-Token': shop.storefrontToken,
+    //   },
+    //   body: JSON.stringify({ 
+    //     query: PRODUCT_QUERY, 
+    //     variables: { id: productId } 
+    //   }),
     // });
     // const data = await response.json();
     
