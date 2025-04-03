@@ -8,6 +8,10 @@
   appearance: none;
 }
 
+.burger div {
+  background-color: white; /* Changed burger lines to white */
+}
+
 .cart-count-bubble {
   position: absolute;
   top: -5px;
@@ -27,6 +31,10 @@
 .header--scrolled {
   background-color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header--scrolled .burger div {
+  background-color: black; /* When header is scrolled, burger lines become black */
 }
 
 .header__icon--cart {

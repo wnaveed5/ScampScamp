@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ScampLogo } from "./ScampLogo";
 import DrawerMenu from './DrawerMenu';
+import './Header.css';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -49,7 +50,7 @@ const Header = () => {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-16 py-4 md:py-6 transition-all duration-300 ${isScrolled ? "bg-white shadow-md" : "bg-transparent"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-16 py-4 md:py-6 transition-all duration-300 ${isScrolled ? "header--scrolled" : "bg-transparent"}`}>
         <div className="flex justify-between items-center">
           {/* Menu Button (Left) */}
           <div className="menu-button-container">
@@ -60,9 +61,9 @@ const Header = () => {
               aria-label="Toggle menu"
               aria-expanded={isMenuOpen}
             >
-              <div className={`w-6 h-0.5 bg-black mb-1.5 transition-transform ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></div>
-              <div className={`w-6 h-0.5 bg-black transition-opacity ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></div>
-              <div className={`w-6 h-0.5 bg-black mt-1.5 transition-transform ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></div>
+              <div className={`w-6 h-0.5 mb-1.5 transition-transform ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></div>
+              <div className={`w-6 h-0.5 transition-opacity ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></div>
+              <div className={`w-6 h-0.5 mt-1.5 transition-transform ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></div>
             </button>
           </div>
 
@@ -95,7 +96,7 @@ const Header = () => {
                 />
               </svg>
               {cartCount > 0 && (
-                <div className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <div className="cart-count-bubble">
                   {cartCount}
                 </div>
               )}
