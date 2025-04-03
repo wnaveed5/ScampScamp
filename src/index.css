@@ -103,30 +103,52 @@
 
 /* Swiper custom styles */
 .swiper-pagination-bullet {
-  width: 10px;
-  height: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
   opacity: 1;
   margin: 0 5px;
+  transition: all 0.3s ease;
 }
 
 .swiper-pagination-bullet-active {
+  width: 24px;
+  border-radius: 4px;
   background: #ffffff;
 }
 
 .swiper-button-next,
 .swiper-button-prev {
   color: #ffffff;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .swiper-button-next:after,
 .swiper-button-prev:after {
-  font-size: 24px;
+  font-size: 20px !important;
 }
 
 @media (max-width: 768px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
   .swiper-button-next:after,
   .swiper-button-prev:after {
-    font-size: 18px;
+    font-size: 16px !important;
   }
 }

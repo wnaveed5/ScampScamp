@@ -1,5 +1,4 @@
-
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
@@ -9,10 +8,9 @@ import { useShopify } from "../hooks/useShopify";
 import { fetchProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
-// Import Swiper React components and required modules
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
-// Import Swiper styles
+import SliderProgress from "@/components/SliderProgress";
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/navigation';
@@ -20,19 +18,22 @@ import 'swiper/css/pagination';
 
 const Homepage = () => {
   const shop = useShopify();
+  const videoRefs = useRef<HTMLVideoElement[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [totalSlides, setTotalSlides] = useState(3);
+  const swiperRef = useRef<any>(null);
   
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: () => fetchProducts(shop.storeDomain, shop.storefrontToken),
   });
 
-  // Function to determine if we're on mobile
   const isMobile = () => window.innerWidth < 768;
   
-  // State to track current device type
-  const [mobile, setMobile] = React.useState(isMobile());
+  const [mobile, setMobile] = useState(isMobile());
 
-  // Update mobile state when window resizes
   useEffect(() => {
     const handleResize = () => {
       setMobile(isMobile());
@@ -42,7 +43,6 @@ const Homepage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Hero slider content based on device type
   const heroSlides = mobile ? [
     { type: 'video', src: 'https://cdn.shopify.com/videos/c/o/v/7ce6a0a174264d11954f01ea3bab82d8.mp4' },
     { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/scamp_pink_phone.png?v=1743282576' },
@@ -53,18 +53,87 @@ const Homepage = () => {
     { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/blue_desktop_scamp.jpg?v=1743282583' }
   ];
 
+  useEffect(() => {
+    setTotalSlides(heroSlides.length);
+  }, [heroSlides]);
+
+  const handleVideoEnd = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slideNext();
+    }
+  };
+
+  useEffect(() => {
+    const currentSlide = heroSlides[activeIndex];
+    let intervalId: ReturnType<typeof setInterval>;
+    let duration = 5;
+    
+    if (currentSlide.type === 'video' && videoRefs.current[activeIndex]) {
+      const videoElement = videoRefs.current[activeIndex];
+      
+      if (videoElement.readyState >= 2) {
+        duration = videoElement.duration;
+        
+        const updateProgress = () => {
+          const currentTime = videoElement.currentTime;
+          const newProgress = (currentTime / duration) * 100;
+          setProgress(newProgress);
+          setTimeRemaining(duration - currentTime);
+        };
+        
+        intervalId = setInterval(updateProgress, 100);
+        updateProgress();
+      }
+    } else {
+      let startTime = Date.now();
+      
+      const updateImageProgress = () => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const newProgress = Math.min((elapsed / duration) * 100, 100);
+        setProgress(newProgress);
+        setTimeRemaining(Math.max(duration - elapsed, 0));
+        
+        if (newProgress >= 100 && swiperRef.current && swiperRef.current.swiper) {
+          swiperRef.current.swiper.slideNext();
+        }
+      };
+      
+      intervalId = setInterval(updateImageProgress, 100);
+    }
+    
+    return () => clearInterval(intervalId);
+  }, [activeIndex, heroSlides]);
+
+  useEffect(() => {
+    if (
+      heroSlides[activeIndex]?.type === 'video' && 
+      videoRefs.current[activeIndex]
+    ) {
+      const videoElement = videoRefs.current[activeIndex];
+      
+      if (videoElement) {
+        videoElement.currentTime = 0;
+        videoElement.play().catch(err => console.log('Video play error:', err));
+        
+        if (swiperRef.current && swiperRef.current.swiper) {
+          swiperRef.current.swiper.autoplay.stop();
+        }
+      }
+    }
+  }, [activeIndex, heroSlides]);
+
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
       <Header />
 
-      {/* Hero Section with Swiper */}
       <section className="relative h-screen">
         <Swiper
+          ref={swiperRef}
           modules={[Autoplay, EffectFade, Navigation, Pagination]}
           effect="fade"
           speed={1000}
           loop={true}
+          allowTouchMove={false}
           autoplay={{
             delay: 5000,
             disableOnInteraction: false,
@@ -79,17 +148,23 @@ const Homepage = () => {
             nextEl: '.swiper-button-next',
             prevEl: '.swiper-button-prev',
           }}
+          onSlideChange={(swiper) => {
+            setActiveIndex(swiper.realIndex);
+            setProgress(0);
+          }}
           className="h-full w-full"
         >
           {heroSlides.map((slide, index) => (
             <SwiperSlide key={index} className="h-full">
               {slide.type === 'video' ? (
                 <video
-                  autoPlay
+                  ref={el => {
+                    if (el) videoRefs.current[index] = el;
+                  }}
                   muted
-                  loop
                   playsInline
                   className="absolute inset-0 object-cover h-full w-full"
+                  onEnded={handleVideoEnd}
                 >
                   <source src={slide.src} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -101,9 +176,7 @@ const Homepage = () => {
                 />
               )}
               <div className="absolute inset-0 bg-black opacity-20" />
-              <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16">
-                <h1 className="text-4xl md:text-7xl font-bold mb-6">SUMMER COLLECTION</h1>
-                <p className="text-lg md:text-xl mb-8 max-w-xl">Discover our new line of exclusive designs, crafted with premium materials and attention to detail.</p>
+              <div className="absolute right-8 bottom-8 z-10">
                 <Button 
                   asChild 
                   variant="outline" 
@@ -117,13 +190,17 @@ const Homepage = () => {
               </div>
             </SwiperSlide>
           ))}
-          <div className="swiper-pagination absolute bottom-10 z-10"></div>
+          <SliderProgress 
+            totalSlides={totalSlides}
+            currentSlide={activeIndex}
+            progress={progress}
+            timeRemaining={timeRemaining}
+          />
           <div className="swiper-button-prev text-white"></div>
           <div className="swiper-button-next text-white"></div>
         </Swiper>
       </section>
 
-      {/* Featured Products */}
       <section className="py-16 px-6 md:px-16 bg-black">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl md:text-3xl font-medium">Featured Products</h2>
@@ -191,7 +268,6 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Newsletter */}
       <section className="py-20 px-6 md:px-16 bg-gray-900">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl md:text-4xl font-bold mb-6">JOIN OUR NEWSLETTER</h2>
@@ -209,7 +285,6 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-12 px-6 md:px-16 bg-black">
         <Separator className="bg-gray-800 mb-12" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
