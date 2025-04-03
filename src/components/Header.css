@@ -8,10 +8,6 @@
   appearance: none;
 }
 
-.burger div {
-  background-color: white; /* Changed burger lines to white */
-}
-
 .cart-count-bubble {
   position: absolute;
   top: -5px;
@@ -34,7 +30,7 @@
 }
 
 .header--scrolled .burger div {
-  background-color: black; /* When header is scrolled, burger lines become black */
+  background-color: black;
 }
 
 .header__icon--cart {
@@ -63,4 +59,9 @@
 
 .logo-image--visible {
   opacity: 1;
+}
+
+/* Make sure the logo color changes on scroll */
+.header--scrolled .logo-link {
+  color: black;
 }

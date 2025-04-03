@@ -5,13 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProductById } from "@/lib/api";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShoppingBag, ShoppingCart } from "lucide-react";
 import { useShopify } from "../hooks/useShopify";
+import { useCart } from "../context/CartContext";
 
 const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const shop = useShopify();
+  const { addToCart, setIsCartOpen } = useCart();
   
   const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
@@ -22,6 +24,29 @@ const ProductDetail = () => {
   if (error) {
     console.error("Error loading product:", error);
   }
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart({
+        id: product.id,
+        title: product.title,
+        price: parseFloat(product.price),
+        image: product.image || "",
+      });
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      addToCart({
+        id: product.id,
+        title: product.title,
+        price: parseFloat(product.price),
+        image: product.image || "",
+      });
+      setIsCartOpen(true);
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -63,7 +88,23 @@ const ProductDetail = () => {
             <div className="prose mb-6">
               <p>{product.description}</p>
             </div>
-            <Button className="w-full md:w-auto">Add to Cart</Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                className="flex-1" 
+                variant="outline"
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Add to Cart
+              </Button>
+              <Button 
+                className="flex-1"
+                onClick={handleBuyNow}
+              >
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Buy Now
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
