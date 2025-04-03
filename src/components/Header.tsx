@@ -5,7 +5,7 @@ import DrawerMenu from './DrawerMenu';
 import CartDrawer from './CartDrawer';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, ShoppingBag } from 'lucide-react';
-import { useCartJS } from "../context/CartJS";
+import { useCart } from "@shopify/hydrogen-react";
 import './Header.css';
 // import scampLogoSvg from '../scamp-logo.svg';
 
@@ -42,7 +42,10 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [hasUserScrolled, setHasUserScrolled] = useState(false);
   const isMobile = useIsMobile();
-  const { totalItems, setIsCartOpen, isCartOpen } = useCartJS();
+  
+  // Use Shopify Hydrogen cart
+  const { totalQuantity, cartCreate, status } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Handle scroll effect for header background
   useEffect(() => {
@@ -91,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
   const handleCartClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsCartOpen(true);
-  }, [setIsCartOpen]);
+  }, []);
 
   return (
     <>
@@ -158,9 +161,9 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
               aria-label="Open cart"
             >
               <ShoppingBag className="h-6 w-6" />
-              {totalItems > 0 && (
+              {totalQuantity > 0 && (
                 <div className="cart-count-bubble">
-                  {totalItems}
+                  {totalQuantity}
                 </div>
               )}
             </button>
@@ -172,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
       <DrawerMenu isOpen={isMenuOpen} onClose={handleCloseMenu} />
       
       {/* Cart Drawer Component */}
-      <CartDrawer />
+      <CartDrawer isOpen={isCartOpen} setIsOpen={setIsCartOpen} />
     </>
   );
 };

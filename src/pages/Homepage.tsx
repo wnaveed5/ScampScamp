@@ -11,10 +11,11 @@ import { useShopify } from "../hooks/useShopify"
 import { fetchProducts } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import Header from "@/components/Header"
+import CartDrawer from "@/components/CartDrawer"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { EffectFade, Navigation } from "swiper/modules"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useCartJS } from "../context/CartJS"
+import { useCart } from "@shopify/hydrogen-react"
 import "swiper/css"
 import "swiper/css/effect-fade"
 import "swiper/css/navigation"
@@ -30,7 +31,8 @@ const Homepage = () => {
   const productsSectionRef = useRef<HTMLDivElement>(null)
   const navigationPrevRef = useRef<HTMLButtonElement>(null)
   const navigationNextRef = useRef<HTMLButtonElement>(null)
-  const { addItem, setIsCartOpen } = useCartJS()
+  const { linesAdd } = useCart()
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -146,26 +148,23 @@ const Homepage = () => {
 
   const handleAddToCart = (product: any, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation
-    addItem({
-      id: product.id,
-      title: product.title,
-      price: parseFloat(product.price),
-      quantity: 1,
-      image: product.image || "",
-      variant_id: product.id
-    });
+    linesAdd([
+      {
+        merchandiseId: product.id,
+        quantity: 1
+      }
+    ]);
   };
 
   const handleBuyNow = (product: any, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation
-    addItem({
-      id: product.id,
-      title: product.title,
-      price: parseFloat(product.price),
-      quantity: 1,
-      image: product.image || "",
-      variant_id: product.id
-    });
+    linesAdd([
+      {
+        merchandiseId: product.id,
+        quantity: 1
+      }
+    ]);
+    // Open the cart drawer
     setIsCartOpen(true);
   };
 
@@ -294,6 +293,8 @@ const Homepage = () => {
           </div>
         </section>
       </div>
+
+      <CartDrawer isOpen={isCartOpen} setIsOpen={setIsCartOpen} />
     </div>
   )
 }
