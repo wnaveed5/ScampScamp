@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, ChevronUp, ChevronDown } from "lucide-react"
+import { ArrowRight, ChevronUp, ChevronDown, ShoppingBag, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useShopify } from "../hooks/useShopify"
@@ -14,6 +14,7 @@ import Header from "@/components/Header"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { EffectFade, Navigation } from "swiper/modules"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useCartJS } from "../context/CartJS"
 import "swiper/css"
 import "swiper/css/effect-fade"
 import "swiper/css/navigation"
@@ -29,6 +30,7 @@ const Homepage = () => {
   const productsSectionRef = useRef<HTMLDivElement>(null)
   const navigationPrevRef = useRef<HTMLButtonElement>(null)
   const navigationNextRef = useRef<HTMLButtonElement>(null)
+  const { addItem, setIsCartOpen } = useCartJS()
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -142,6 +144,31 @@ const Homepage = () => {
     return (activeIndex + slideProgress) * segmentHeight
   }
 
+  const handleAddToCart = (product: any, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: parseFloat(product.price),
+      quantity: 1,
+      image: product.image || "",
+      variant_id: product.id
+    });
+  };
+
+  const handleBuyNow = (product: any, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: parseFloat(product.price),
+      quantity: 1,
+      image: product.image || "",
+      variant_id: product.id
+    });
+    setIsCartOpen(true);
+  };
+
   return (
     <div className="bg-black text-white">
       <Header alwaysBlack={showGrid} />
@@ -229,83 +256,43 @@ const Homepage = () => {
               ))
             ) : (
               products?.slice(0, 6).map((product) => (
-                <Link key={product.id} to={`/product/${product.id}`} className="block group">
-                  <div className="aspect-[3/4] relative mb-4 overflow-hidden">
-                    <img
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                <div key={product.id} className="group relative">
+                  <Link to={`/product/${product.id}`} className="block">
+                    <div className="aspect-[3/4] relative mb-4 overflow-hidden">
+                      <img
+                        src={product.image || "/placeholder.svg"}
+                        alt={product.title}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">{product.title}</h3>
+                    <p className="text-gray-400">${product.price}</p>
+                  </Link>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1 bg-transparent border-white text-white hover:bg-white hover:text-black"
+                      onClick={(e) => handleAddToCart(product, e)}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add to Cart
+                    </Button>
+                    <Button 
+                      size="sm"
+                      className="flex-1 bg-white text-black hover:bg-gray-200"
+                      onClick={(e) => handleBuyNow(product, e)}
+                    >
+                      <ShoppingBag className="mr-2 h-4 w-4" />
+                      Buy Now
+                    </Button>
                   </div>
-                  <h3 className="text-lg font-medium mb-1">{product.title}</h3>
-                  <p className="text-gray-400">${product.price}</p>
-                </Link>
+                </div>
               ))
             )}
           </div>
         </section>
-
-        <section className="py-20 px-6 md:px-16 bg-gray-900">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl md:text-4xl font-bold mb-6">JOIN OUR NEWSLETTER</h2>
-            <p className="text-gray-400 mb-8">
-              Stay updated on new releases, exclusive content, and special promotions.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="flex-1 px-4 py-3 bg-transparent border border-white text-white"
-              />
-              <Button className="bg-white text-black hover:bg-gray-200">Subscribe</Button>
-            </div>
-          </div>
-        </section>
-
-        <footer className="py-12 px-6 md:px-16 bg-black">
-          <Separator className="bg-gray-800 mb-12" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-medium mb-4">SHOP</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/products" className="hover:text-white transition-colors">New Arrivals</Link></li>
-                <li><Link to="/products" className="hover:text-white transition-colors">Bestsellers</Link></li>
-                <li><Link to="/products" className="hover:text-white transition-colors">Collections</Link></li>
-                <li><Link to="/products" className="hover:text-white transition-colors">Sale</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-medium mb-4">HELP</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/" className="hover:text-white transition-colors">Contact Us</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Shipping</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Returns</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">FAQ</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-medium mb-4">ABOUT</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/" className="hover:text-white transition-colors">Our Story</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Sustainability</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Press</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-medium mb-4">FOLLOW</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
-                <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a></li>
-                <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a></li>
-                <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 text-center text-gray-500 text-sm">
-            <p>© {new Date().getFullYear()} SCAMP. All rights reserved.</p>
-          </div>
-        </footer>
       </div>
     </div>
   )

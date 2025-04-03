@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { ScampLogo } from "./ScampLogo";
 import DrawerMenu from './DrawerMenu';
 import CartDrawer from './CartDrawer';
-import { useCart } from '../context/CartContext';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, ShoppingBag } from 'lucide-react';
+import { useCartJS } from "../context/CartJS";
 import './Header.css';
 // import scampLogoSvg from '../scamp-logo.svg';
 
@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [hasUserScrolled, setHasUserScrolled] = useState(false);
   const isMobile = useIsMobile();
-  const { totalItems, setIsCartOpen, isCartOpen } = useCart();
+  const { totalItems, setIsCartOpen, isCartOpen } = useCartJS();
 
   // Handle scroll effect for header background
   useEffect(() => {

@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { useCart, CartItem } from '../context/CartContext';
+import { useCartJS } from '../context/CartJS';
 import { 
   Sheet,
   SheetContent,
@@ -13,14 +12,21 @@ import {
 import { Button } from "@/components/ui/button";
 
 const CartDrawer = () => {
-  const { items, totalItems, totalPrice, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity } = useCart();
-
+  // Get cart context
+  const cart = useCartJS();
+  const { items, totalItems, totalPrice, isCartOpen, setIsCartOpen } = cart;
+  
+  // Handle removing an item from the cart
   const handleRemoveItem = (id: string) => {
-    removeFromCart(id);
+    cart.removeItem(id);
   };
 
-  const handleUpdateQuantity = (item: CartItem, delta: number) => {
-    updateQuantity(item.id, item.quantity + delta);
+  // Handle updating item quantity
+  const handleUpdateQuantity = (item: any, delta: number) => {
+    const newQuantity = item.quantity + delta;
+    if (newQuantity <= 0) return;
+    
+    cart.updateItem(item.id, newQuantity);
   };
 
   return (

@@ -1,14 +1,17 @@
-
 import React from "react";
-import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProducts } from "@/lib/api";
+import { ShoppingBag, ShoppingCart } from "lucide-react";
 import { useShopify } from "../hooks/useShopify";
+import { useCartJS } from "../context/CartJS";
+import { addToCart as addToCartJS } from "../utils/cartHelper";
 
 const ProductListingPage = () => {
   const shop = useShopify();
+  const cartJS = useCartJS();
   
   const { data: products, isLoading, error } = useQuery({
     queryKey: ["products"],
@@ -18,6 +21,27 @@ const ProductListingPage = () => {
   if (error) {
     console.error("Error loading products:", error);
   }
+
+  const handleAddToCart = (product) => {
+    addToCartJS(cartJS, {
+      id: product.id,
+      title: product.title,
+      price: parseFloat(product.price),
+      image: product.image || "",
+      variant_id: product.id
+    });
+  };
+
+  const handleBuyNow = (product) => {
+    addToCartJS(cartJS, {
+      id: product.id,
+      title: product.title,
+      price: parseFloat(product.price),
+      image: product.image || "",
+      variant_id: product.id
+    });
+    cartJS.setIsCartOpen(true);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -36,6 +60,9 @@ const ProductListingPage = () => {
               <CardContent>
                 <Skeleton className="h-4 w-1/2 mb-2" />
               </CardContent>
+              <CardFooter className="flex gap-2">
+                <Skeleton className="h-10 w-full" />
+              </CardFooter>
             </Card>
           ))}
         </div>
@@ -58,13 +85,22 @@ const ProductListingPage = () => {
               <CardContent>
                 <p className="text-lg font-medium">${product.price}</p>
               </CardContent>
-              <CardFooter>
-                <Link
-                  to={`/product/${product.id}`}
-                  className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              <CardFooter className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handleAddToCart(product)}
                 >
-                  View Details
-                </Link>
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Add to Cart
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={() => handleBuyNow(product)}
+                >
+                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  Buy Now
+                </Button>
               </CardFooter>
             </Card>
           ))}
