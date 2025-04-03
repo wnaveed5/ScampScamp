@@ -1,21 +1,22 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselNext, 
-  CarouselPrevious 
-} from "@/components/ui/carousel";
 import { useShopify } from "../hooks/useShopify";
 import { fetchProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
+// Import Swiper React components and required modules
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/effect-fade';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const Homepage = () => {
   const shop = useShopify();
@@ -25,34 +26,101 @@ const Homepage = () => {
     queryFn: () => fetchProducts(shop.storeDomain, shop.storefrontToken),
   });
 
+  // Function to determine if we're on mobile
+  const isMobile = () => window.innerWidth < 768;
+  
+  // State to track current device type
+  const [mobile, setMobile] = React.useState(isMobile());
+
+  // Update mobile state when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      setMobile(isMobile());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Hero slider content based on device type
+  const heroSlides = mobile ? [
+    { type: 'video', src: 'https://cdn.shopify.com/videos/c/o/v/7ce6a0a174264d11954f01ea3bab82d8.mp4' },
+    { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/scamp_pink_phone.png?v=1743282576' },
+    { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/scamp_blue_phone.jpg?v=1743282582' }
+  ] : [
+    { type: 'video', src: 'https://cdn.shopify.com/videos/c/o/v/d171bd97a07040888e99f84f4cf6f5c0.mp4' },
+    { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/scamp_pink_deskto.png?v=1743282580' },
+    { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/blue_desktop_scamp.jpg?v=1743282583' }
+  ];
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero Section with Swiper */}
       <section className="relative h-screen">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-50" />
-        <div 
-          className="absolute inset-0 bg-cover bg-center" 
-          style={{ 
-            backgroundImage: "url('https://placehold.co/1920x1080/222222/ffffff?text=FEATURED+COLLECTION')" 
+        <Swiper
+          modules={[Autoplay, EffectFade, Navigation, Pagination]}
+          effect="fade"
+          speed={1000}
+          loop={true}
+          autoplay={{
+            delay: 5000,
+            disableOnInteraction: false,
           }}
-        />
-        <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16">
-          <h1 className="text-4xl md:text-7xl font-bold mb-6">SUMMER COLLECTION</h1>
-          <p className="text-lg md:text-xl mb-8 max-w-xl">Discover our new line of exclusive designs, crafted with premium materials and attention to detail.</p>
-          <Button 
-            asChild 
-            variant="outline" 
-            size="lg" 
-            className="w-fit border-white text-white hover:bg-white hover:text-black transition-colors"
-          >
-            <Link to="/product/1">
-              Shop Now <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
+          pagination={{ 
+            clickable: true,
+            el: ".swiper-pagination",
+            bulletClass: "swiper-pagination-bullet",
+            bulletActiveClass: "swiper-pagination-bullet-active",
+          }}
+          navigation={{
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          }}
+          className="h-full w-full"
+        >
+          {heroSlides.map((slide, index) => (
+            <SwiperSlide key={index} className="h-full">
+              {slide.type === 'video' ? (
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 object-cover h-full w-full"
+                >
+                  <source src={slide.src} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url('${slide.src}')` }}
+                />
+              )}
+              <div className="absolute inset-0 bg-black opacity-20" />
+              <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16">
+                <h1 className="text-4xl md:text-7xl font-bold mb-6">SUMMER COLLECTION</h1>
+                <p className="text-lg md:text-xl mb-8 max-w-xl">Discover our new line of exclusive designs, crafted with premium materials and attention to detail.</p>
+                <Button 
+                  asChild 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-fit border-white text-white hover:bg-white hover:text-black transition-colors"
+                >
+                  <Link to="/products">
+                    Shop Now <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
+            </SwiperSlide>
+          ))}
+          <div className="swiper-pagination absolute bottom-10 z-10"></div>
+          <div className="swiper-button-prev text-white"></div>
+          <div className="swiper-button-next text-white"></div>
+        </Swiper>
       </section>
 
       {/* Featured Products */}
@@ -64,7 +132,7 @@ const Homepage = () => {
             variant="link" 
             className="text-white"
           >
-            <Link to="/" className="flex items-center">
+            <Link to="/products" className="flex items-center">
               View All <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -79,81 +147,47 @@ const Homepage = () => {
               ))}
             </div>
           ) : (
-            <Carousel className="w-full">
-              <CarouselContent>
-                {products?.slice(0, 6).map((product) => (
-                  <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3">
-                    <Link to={`/product/${product.id}`} className="block group">
-                      <div className="aspect-[3/4] relative mb-4 overflow-hidden">
-                        <img
-                          src={product.image}
-                          alt={product.title}
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
-                      <h3 className="text-lg font-medium mb-1">{product.title}</h3>
-                      <p className="text-gray-400">${product.price}</p>
-                    </Link>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-4 bg-black/50 border-white text-white" />
-              <CarouselNext className="right-4 bg-black/50 border-white text-white" />
-            </Carousel>
+            <Swiper
+              modules={[Navigation]}
+              slidesPerView={1}
+              spaceBetween={24}
+              navigation={{
+                nextEl: '.product-next',
+                prevEl: '.product-prev',
+              }}
+              breakpoints={{
+                640: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 3,
+                }
+              }}
+              className="product-swiper"
+            >
+              {products?.slice(0, 6).map((product) => (
+                <SwiperSlide key={product.id}>
+                  <Link to={`/product/${product.id}`} className="block group">
+                    <div className="aspect-[3/4] relative mb-4 overflow-hidden">
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">{product.title}</h3>
+                    <p className="text-gray-400">${product.price}</p>
+                  </Link>
+                </SwiperSlide>
+              ))}
+              <div className="absolute top-1/2 -left-4 z-10 product-prev flex items-center justify-center w-10 h-10 rounded-full bg-black/50 border border-white text-white cursor-pointer">
+                <ArrowRight className="h-4 w-4 rotate-180" />
+              </div>
+              <div className="absolute top-1/2 -right-4 z-10 product-next flex items-center justify-center w-10 h-10 rounded-full bg-black/50 border border-white text-white cursor-pointer">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </Swiper>
           )}
-        </div>
-      </section>
-
-      {/* Content Blocks */}
-      <section className="py-16 px-6 md:px-16 bg-black">
-        <Separator className="bg-gray-800 mb-16" />
-        
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <div 
-            className="aspect-square relative bg-gray-900"
-            style={{ 
-              backgroundImage: "url('https://placehold.co/800x800/333333/ffffff?text=LOOKBOOK')",
-              backgroundSize: "cover",
-              backgroundPosition: "center" 
-            }}
-          />
-          <div className="flex flex-col justify-center">
-            <h2 className="text-2xl md:text-4xl font-bold mb-6">SUMMER LOOKBOOK</h2>
-            <p className="text-gray-400 mb-8">Explore our curated collection showcasing the versatility and style of our newest designs. Shot on location in Joshua Tree.</p>
-            <Button 
-              asChild 
-              variant="outline" 
-              className="w-fit border-white text-white hover:bg-white hover:text-black transition-colors"
-            >
-              <Link to="/">
-                View Lookbook <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="flex flex-col justify-center order-2 md:order-1">
-            <h2 className="text-2xl md:text-4xl font-bold mb-6">OUR STORY</h2>
-            <p className="text-gray-400 mb-8">Founded with a passion for quality and design, our brand represents a commitment to craftsmanship and sustainable practices.</p>
-            <Button 
-              asChild 
-              variant="outline" 
-              className="w-fit border-white text-white hover:bg-white hover:text-black transition-colors"
-            >
-              <Link to="/">
-                Learn More <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
-          <div 
-            className="aspect-square relative bg-gray-900 order-1 md:order-2"
-            style={{ 
-              backgroundImage: "url('https://placehold.co/800x800/333333/ffffff?text=OUR+STORY')",
-              backgroundSize: "cover",
-              backgroundPosition: "center" 
-            }}
-          />
         </div>
       </section>
 
@@ -182,10 +216,10 @@ const Homepage = () => {
           <div>
             <h3 className="font-medium mb-4">SHOP</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><Link to="/" className="hover:text-white transition-colors">New Arrivals</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Bestsellers</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Collections</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Sale</Link></li>
+              <li><Link to="/products" className="hover:text-white transition-colors">New Arrivals</Link></li>
+              <li><Link to="/products" className="hover:text-white transition-colors">Bestsellers</Link></li>
+              <li><Link to="/products" className="hover:text-white transition-colors">Collections</Link></li>
+              <li><Link to="/products" className="hover:text-white transition-colors">Sale</Link></li>
             </ul>
           </div>
           <div>
