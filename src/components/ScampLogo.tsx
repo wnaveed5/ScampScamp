@@ -1,11 +1,14 @@
 
 import React from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ScampLogoProps {
   className?: string;
 }
 
 export const ScampLogo: React.FC<ScampLogoProps> = ({ className = "" }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <svg 
       className={className}
@@ -13,6 +16,7 @@ export const ScampLogo: React.FC<ScampLogoProps> = ({ className = "" }) => {
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMidYMid meet"
+      style={{ maxWidth: isMobile ? "100px" : "auto" }}
     >
       <g transform="translate(0.000000,293.000000) scale(0.100000,-0.100000)">
         <path d="M1036 2649 c-140 -16 -239 -90 -266 -200 -7 -30 -10 -214 -8 -574 l3

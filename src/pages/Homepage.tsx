@@ -9,19 +9,17 @@ import { fetchProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
+import { Autoplay, EffectFade } from 'swiper/modules';
 import SliderProgress from "@/components/SliderProgress";
+import { useIsMobile } from "@/hooks/use-mobile";
 import 'swiper/css';
 import 'swiper/css/effect-fade';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 
 const Homepage = () => {
   const shop = useShopify();
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(0);
   const [totalSlides, setTotalSlides] = useState(3);
   const swiperRef = useRef<any>(null);
   
@@ -29,21 +27,10 @@ const Homepage = () => {
     queryKey: ["products"],
     queryFn: () => fetchProducts(shop.storeDomain, shop.storefrontToken),
   });
-
-  const isMobile = () => window.innerWidth < 768;
   
-  const [mobile, setMobile] = useState(isMobile());
+  const isMobile = useIsMobile();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setMobile(isMobile());
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const heroSlides = mobile ? [
+  const heroSlides = isMobile ? [
     { type: 'video', src: 'https://cdn.shopify.com/videos/c/o/v/7ce6a0a174264d11954f01ea3bab82d8.mp4' },
     { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/scamp_pink_phone.png?v=1743282576' },
     { type: 'image', src: 'https://cdn.shopify.com/s/files/1/0743/9312/4887/files/scamp_blue_phone.jpg?v=1743282582' }
@@ -66,60 +53,37 @@ const Homepage = () => {
   useEffect(() => {
     const currentSlide = heroSlides[activeIndex];
     let intervalId: ReturnType<typeof setInterval>;
-    let duration = 5;
+    let slideDuration = 5; // Default duration for image slides
     
     if (currentSlide.type === 'video' && videoRefs.current[activeIndex]) {
       const videoElement = videoRefs.current[activeIndex];
       
       if (videoElement.readyState >= 2) {
-        duration = videoElement.duration;
-        
-        const updateProgress = () => {
-          const currentTime = videoElement.currentTime;
-          const newProgress = (currentTime / duration) * 100;
-          setProgress(newProgress);
-          setTimeRemaining(duration - currentTime);
-        };
-        
-        intervalId = setInterval(updateProgress, 100);
-        updateProgress();
-      }
-    } else {
-      let startTime = Date.now();
-      
-      const updateImageProgress = () => {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const newProgress = Math.min((elapsed / duration) * 100, 100);
-        setProgress(newProgress);
-        setTimeRemaining(Math.max(duration - elapsed, 0));
-        
-        if (newProgress >= 100 && swiperRef.current && swiperRef.current.swiper) {
-          swiperRef.current.swiper.slideNext();
-        }
-      };
-      
-      intervalId = setInterval(updateImageProgress, 100);
-    }
-    
-    return () => clearInterval(intervalId);
-  }, [activeIndex, heroSlides]);
-
-  useEffect(() => {
-    if (
-      heroSlides[activeIndex]?.type === 'video' && 
-      videoRefs.current[activeIndex]
-    ) {
-      const videoElement = videoRefs.current[activeIndex];
-      
-      if (videoElement) {
-        videoElement.currentTime = 0;
+        slideDuration = videoElement.duration;
         videoElement.play().catch(err => console.log('Video play error:', err));
         
         if (swiperRef.current && swiperRef.current.swiper) {
           swiperRef.current.swiper.autoplay.stop();
         }
       }
+    } else {
+      if (swiperRef.current && swiperRef.current.swiper) {
+        swiperRef.current.swiper.autoplay.start();
+      }
     }
+    
+    // Start a timer to update progress for all slide types
+    let startTime = Date.now();
+    
+    const updateSlideProgress = () => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const newProgress = Math.min((elapsed / slideDuration) * 100, 100);
+      setProgress(newProgress);
+    };
+    
+    intervalId = setInterval(updateSlideProgress, 100);
+    
+    return () => clearInterval(intervalId);
   }, [activeIndex, heroSlides]);
 
   return (
@@ -129,24 +93,14 @@ const Homepage = () => {
       <section className="relative h-screen">
         <Swiper
           ref={swiperRef}
-          modules={[Autoplay, EffectFade, Navigation, Pagination]}
+          modules={[Autoplay, EffectFade]}
           effect="fade"
           speed={1000}
           loop={true}
-          allowTouchMove={false}
+          allowTouchMove={true}
           autoplay={{
             delay: 5000,
             disableOnInteraction: false,
-          }}
-          pagination={{ 
-            clickable: true,
-            el: ".swiper-pagination",
-            bulletClass: "swiper-pagination-bullet",
-            bulletActiveClass: "swiper-pagination-bullet-active",
-          }}
-          navigation={{
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
           }}
           onSlideChange={(swiper) => {
             setActiveIndex(swiper.realIndex);
@@ -176,28 +130,13 @@ const Homepage = () => {
                 />
               )}
               <div className="absolute inset-0 bg-black opacity-20" />
-              <div className="absolute right-8 bottom-8 z-10">
-                <Button 
-                  asChild 
-                  variant="outline" 
-                  size="lg" 
-                  className="w-fit border-white text-white hover:bg-white hover:text-black transition-colors"
-                >
-                  <Link to="/products">
-                    Shop Now <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
             </SwiperSlide>
           ))}
           <SliderProgress 
             totalSlides={totalSlides}
             currentSlide={activeIndex}
             progress={progress}
-            timeRemaining={timeRemaining}
           />
-          <div className="swiper-button-prev text-white"></div>
-          <div className="swiper-button-next text-white"></div>
         </Swiper>
       </section>
 

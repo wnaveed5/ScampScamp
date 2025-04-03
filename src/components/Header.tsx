@@ -3,11 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ScampLogo } from "./ScampLogo";
 import DrawerMenu from './DrawerMenu';
+import { useIsMobile } from "@/hooks/use-mobile";
 import './Header.css';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const isMobile = useIsMobile();
+  
   // Since we don't have the full ShopContext implementation, we'll mock cartCount
   const cartCount = 0;
   
@@ -70,7 +73,7 @@ const Header = () => {
           {/* Centered Logo */}
           <div className="flex justify-center">
             <Link to="/" aria-label="Home" className="logo-link">
-              <ScampLogo className={`h-24 md:h-32 transform scale-y-75 transition-all duration-300 ${isScrolled ? 'scale-90' : ''}`} />
+              <ScampLogo className={`${isMobile ? 'h-16' : 'h-24 md:h-32'} transform scale-y-75 transition-all duration-300 ${isScrolled ? 'scale-90' : ''}`} />
             </Link>
           </div>
 
