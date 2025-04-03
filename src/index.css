@@ -99,35 +99,6 @@
   display: none !important;
 }
 
-/* Progress vertical orientation - Fixed */
-.progress-vertical {
-  width: 4px !important;
-  height: 100% !important;
-  position: relative;
-}
-
-.progress-vertical-indicator {
-  width: 100% !important;
-  position: absolute;
-  bottom: 0;
-  transform-origin: bottom;
-  transform: translateY(var(--progress-percentage, 0%));
-}
-
-/* Ensure vertical progress bar displays correctly */
-[data-radix-orientation="vertical"] {
-  height: 100%;
-  width: 4px;
-}
-
-[data-radix-orientation="vertical"] [data-radix-indicator] {
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-  transform-origin: bottom !important;
-  height: var(--radix-progress-indicator-height) !important;
-}
-
 @media (max-width: 768px) {
   .swiper-button-next,
   .swiper-button-prev {
@@ -140,6 +111,26 @@
   width: 100%;
   height: 100%;
   fill: currentColor;
+}
+
+/* Navigation arrows styling */
+.final-slide-next .chevron-right {
+  animation: pulse-vertical 1.5s infinite;
+}
+
+@keyframes pulse-vertical {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
 }
 
 /* Page transition animations */
@@ -178,25 +169,4 @@
   left: 0;
   overflow: hidden;
   perspective: 1200px;
-}
-
-/* Navigation arrows - Fixed for vertical orientation */
-.final-slide-next .chevron-right {
-  animation: pulse-vertical 1.5s infinite;
-}
-
-/* Update the existing pulse-vertical animation */
-@keyframes pulse-vertical {
-  0% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
 }
