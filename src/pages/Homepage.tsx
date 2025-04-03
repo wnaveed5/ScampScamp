@@ -10,9 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Navigation } from 'swiper/modules';
-import SliderProgress from "@/components/SliderProgress";
 import { useIsMobile } from "@/hooks/use-mobile";
-import SwipeIndicator from "@/components/swipe-indicator";
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/navigation';
@@ -21,7 +19,6 @@ const Homepage = () => {
   const shop = useShopify();
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [totalSlides, setTotalSlides] = useState(3);
   const swiperRef = useRef<any>(null);
   const [showGrid, setShowGrid] = useState(false);
@@ -92,17 +89,6 @@ const Homepage = () => {
         swiperRef.current.swiper.autoplay.start();
       }
     }
-    
-    // Start a timer to update progress for all slide types
-    let startTime = Date.now();
-    
-    const updateSlideProgress = () => {
-      const elapsed = (Date.now() - startTime) / 1000;
-      const newProgress = Math.min((elapsed / slideDuration) * 100, 100);
-      setProgress(newProgress);
-    };
-    
-    intervalId = setInterval(updateSlideProgress, 100);
     
     return () => clearInterval(intervalId);
   }, [activeIndex, heroSlides]);
@@ -182,7 +168,6 @@ const Homepage = () => {
           }}
           onSlideChange={(swiper) => {
             setActiveIndex(swiper.realIndex);
-            setProgress(0);
           }}
           navigation={{
             prevEl: navigationPrevRef.current,
@@ -230,12 +215,6 @@ const Homepage = () => {
               <ChevronLeft size={24} />
             </button>
             
-            <SliderProgress 
-              totalSlides={totalSlides}
-              currentSlide={activeIndex}
-              progress={progress}
-            />
-            
             <button 
               ref={navigationNextRef}
               className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors group"
@@ -244,11 +223,6 @@ const Homepage = () => {
               <ChevronRight size={24} className="chevron-right transition-transform duration-300" />
             </button>
           </div>
-
-          <SwipeIndicator 
-            onClick={handleShowGrid} 
-            direction="up"
-          />
         </Swiper>
       </section>
 
