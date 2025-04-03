@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -163,46 +164,21 @@ const Homepage = () => {
               ))}
             </div>
           ) : (
-            <Swiper
-              modules={[Navigation]}
-              slidesPerView={1}
-              spaceBetween={24}
-              navigation={{
-                nextEl: '.product-next',
-                prevEl: '.product-prev',
-              }}
-              breakpoints={{
-                640: {
-                  slidesPerView: 2,
-                },
-                1024: {
-                  slidesPerView: 3,
-                }
-              }}
-              className="product-swiper"
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {products?.slice(0, 6).map((product) => (
-                <SwiperSlide key={product.id}>
-                  <Link to={`/product/${product.id}`} className="block group">
-                    <div className="aspect-[3/4] relative mb-4 overflow-hidden">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <h3 className="text-lg font-medium mb-1">{product.title}</h3>
-                    <p className="text-gray-400">${product.price}</p>
-                  </Link>
-                </SwiperSlide>
+                <Link key={product.id} to={`/product/${product.id}`} className="block group">
+                  <div className="aspect-[3/4] relative mb-4 overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <h3 className="text-lg font-medium mb-1">{product.title}</h3>
+                  <p className="text-gray-400">${product.price}</p>
+                </Link>
               ))}
-              <div className="absolute top-1/2 -left-4 z-10 product-prev flex items-center justify-center w-10 h-10 rounded-full bg-black/50 border border-white text-white cursor-pointer">
-                <ArrowRight className="h-4 w-4 rotate-180" />
-              </div>
-              <div className="absolute top-1/2 -right-4 z-10 product-next flex items-center justify-center w-10 h-10 rounded-full bg-black/50 border border-white text-white cursor-pointer">
-                <ArrowRight className="h-4 w-4" />
-              </div>
-            </Swiper>
+            </div>
           )}
         </div>
       </section>

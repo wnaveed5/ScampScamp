@@ -22,7 +22,9 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
+      className={cn("flex-1 bg-primary transition-all", 
+        orientation === "vertical" ? "h-full w-full" : "h-full w-full"
+      )}
       style={
         orientation === "vertical"
           ? { transform: `translateY(${100 - (value || 0)}%)` }
