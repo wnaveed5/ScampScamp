@@ -12,6 +12,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Navigation } from 'swiper/modules';
 import SliderProgress from "@/components/SliderProgress";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SwipeIndicator from "@/components/swipe-indicator";
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/navigation';
@@ -243,6 +244,11 @@ const Homepage = () => {
               <ChevronRight size={24} className="chevron-right transition-transform duration-300" />
             </button>
           </div>
+
+          <SwipeIndicator 
+            onClick={handleShowGrid} 
+            direction="up"
+          />
         </Swiper>
       </section>
 
