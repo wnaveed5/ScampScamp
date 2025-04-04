@@ -1,7 +1,5 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
 import { 
   Drawer,
   DrawerContent,
@@ -9,7 +7,7 @@ import {
   DrawerTitle,
   DrawerClose
 } from "@/components/ui/drawer";
-import { ScampLogo } from './ScampLogo';
+import { ScampLogoNew } from '@/components/Header';
 
 interface DrawerMenuProps {
   isOpen: boolean;
@@ -45,13 +43,30 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-screen max-h-screen" ref={menuRef}>
-        <DrawerHeader className="flex justify-between items-center border-b pb-4">
-          <Link to="/" onClick={onClose}>
-            <ScampLogo className="h-24 transform scale-y-75" />
+      <DrawerContent className="h-screen max-h-screen [&>button]:hidden" ref={menuRef}>
+        <DrawerHeader className="flex justify-between items-center border-b pb-4 pl-0">
+          <Link to="/" onClick={onClose} className="-ml-10 md:ml-0">
+            <ScampLogoNew
+              height="120"
+              width="240"
+              className="transform scale-y-95"
+              style={{ color: 'black' }}
+            />
           </Link>
-          <DrawerClose onClick={onClose}>
-            <X size={24} />
+          <DrawerClose onClick={onClose} className="pr-2">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18" />
+              <path d="M6 6L18 18" />
+            </svg>
           </DrawerClose>
         </DrawerHeader>
         

@@ -5,12 +5,14 @@ import DrawerMenu from './DrawerMenu';
 import CartDrawer from './CartDrawer';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, ShoppingBag } from 'lucide-react';
-import { useCart } from "@shopify/hydrogen-react";
+import { useShopifyCart } from "../context/ShopifyCart";
 import './Header.css';
+import { ShoppingCart } from "lucide-react";
+import { Button } from "./ui/button";
 // import scampLogoSvg from '../scamp-logo.svg';
 
 // New SVG logo component
-const ScampLogoNew: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const ScampLogoNew: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg 
     version="1.0" 
     xmlns="http://www.w3.org/2000/svg"
@@ -38,50 +40,54 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // Track both scroll position and user-initiated scrolling
   const [isScrolled, setIsScrolled] = useState(false);
-  const [hasUserScrolled, setHasUserScrolled] = useState(false);
   const isMobile = useIsMobile();
   
-  // Use Shopify Hydrogen cart
-  const { totalQuantity, cartCreate, status } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { totalItems, isCartOpen, setIsCartOpen } = useShopifyCart();
 
-  // Handle scroll effect for header background
   useEffect(() => {
     const handleScroll = () => {
-      // Set that user has scrolled
-      setHasUserScrolled(true);
-      
       const scrollPosition = window.scrollY;
+      // Only set isScrolled to true if we've scrolled more than 50px
       const newIsScrolled = scrollPosition > 50;
+      console.log('Header Scroll:', {
+        scrollPosition,
+        currentIsScrolled: isScrolled,
+        newIsScrolled,
+        alwaysBlack
+      });
       setIsScrolled(newIsScrolled);
     };
 
-    // Listen for scroll events
+    // Check initial scroll position
+    handleScroll();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [alwaysBlack]);
+  }, []);
 
-  // Prevent body scrolling when menu or cart is open
+  // Control body scroll - only when menu or cart is open
   useEffect(() => {
+    console.log('Header Menu/Cart Effect:', {
+      isMenuOpen,
+      isCartOpen,
+      currentOverflow: document.body.style.overflow
+    });
+
     if (isMenuOpen || isCartOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = "auto";
     }
 
     return () => {
-      document.body.style.overflow = ""; // Cleanup on unmount
+      console.log('Header Cleanup: Setting overflow to auto');
+      document.body.style.overflow = "auto";
     };
   }, [isMenuOpen, isCartOpen]);
 
-  // Force header styling when alwaysBlack changes
-  useEffect(() => {
-    if (alwaysBlack) {
-      setIsScrolled(true);
-    }
-  }, [alwaysBlack]);
+  // Determine if we should show the black header
+  const shouldShowBlack = alwaysBlack || isScrolled;
 
   const handleMenuToggle = useCallback(() => {
     setIsMenuOpen(prev => !prev);
@@ -100,24 +106,14 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-16 py-4 md:py-6 transition-all duration-300 ${
-          alwaysBlack
-            ? "bg-black" 
-            : isScrolled
-            ? "header--scrolled"
-            : "bg-transparent"
+          shouldShowBlack ? "bg-black" : "bg-transparent"
         }`}
-        style={{
-          backgroundColor: alwaysBlack ? 'black' : (isScrolled ? 'white' : 'transparent'),
-          boxShadow: alwaysBlack ? 'none' : (isScrolled ? '0 2px 10px rgba(0, 0, 0, 0.1)' : 'none')
-        }}
       >
         <div className="flex justify-between items-center">
-          {/* Menu Button (Left) */}
+          {/* Menu Button */}
           <div className="menu-button-container">
             <button
-              className={`burger mobile-nav-toggle flex flex-col justify-center items-center w-10 h-10 ${
-                alwaysBlack ? 'text-white' : (isScrolled ? 'text-black' : 'text-white')
-              }`}
+              className="burger mobile-nav-toggle flex flex-col justify-center items-center w-10 h-10 text-white"
               onClick={handleMenuToggle}
               title="Open Navigation"
               aria-label="Toggle menu"
@@ -127,16 +123,14 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
             </button>
           </div>
 
-          {/* Centered Logo */}
+          {/* Logo */}
           <div className="flex justify-center items-center h-20 md:h-24">
             <Link
               to="/"
               aria-label="Home"
-              className={`logo-link flex items-center h-full ${
-                alwaysBlack ? 'text-white' : (isScrolled ? 'text-black' : 'text-white')
-              }`}
+              className="logo-link flex items-center h-full text-white"
             >
-              {alwaysBlack ? (
+              {shouldShowBlack ? (
                 <ScampLogoNew
                   height="60"
                   width="120"
@@ -151,30 +145,26 @@ const Header: React.FC<HeaderProps> = ({ alwaysBlack = false }) => {
             </Link>
           </div>
 
-          {/* Cart Button (Right) */}
+          {/* Cart Button */}
           <div className="flex items-center">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-white"
               onClick={handleCartClick}
-              className={`relative p-2 ${
-                alwaysBlack ? 'text-white' : (isScrolled ? 'text-black' : 'text-white')
-              }`}
-              aria-label="Open cart"
             >
-              <ShoppingBag className="h-6 w-6" />
-              {totalQuantity > 0 && (
-                <div className="cart-count-bubble">
-                  {totalQuantity}
-                </div>
+              <ShoppingCart className="h-6 w-6" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Drawer Menu Component */}
       <DrawerMenu isOpen={isMenuOpen} onClose={handleCloseMenu} />
-      
-      {/* Cart Drawer Component */}
       <CartDrawer isOpen={isCartOpen} setIsOpen={setIsCartOpen} />
     </>
   );

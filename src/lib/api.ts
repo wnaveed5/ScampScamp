@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 
 // Define types for our data
@@ -37,6 +36,17 @@ const PRODUCTS_QUERY = `
           featuredImage {
             url
             altText
+          }
+          variants(first: 1) {
+            edges {
+              node {
+                id
+                price {
+                  amount
+                  currencyCode
+                }
+              }
+            }
           }
         }
       }
@@ -117,8 +127,11 @@ export async function fetchProducts(storeDomain: string, storefrontToken: string
       
       if (data.data && data.data.products && data.data.products.edges) {
         return data.data.products.edges.map((edge: any) => {
+          // Get variant ID if available
+          const variantId = edge.node.variants?.edges?.[0]?.node?.id || edge.node.id;
+          
           return {
-            id: edge.node.id.split('/').pop(),
+            id: variantId, // Keep the full gid:// ID for cart operations
             title: edge.node.title,
             description: edge.node.description,
             price: edge.node.priceRange.minVariantPrice.amount,
@@ -145,21 +158,21 @@ function getFallbackProducts(): Product[] {
   console.log("Using fallback mock products");
   const mockProducts: Product[] = [
     {
-      id: "1",
+      id: "gid://shopify/ProductVariant/1",
       title: "Sample Product 1",
       description: "This is a sample product description. It would contain details about the product features and benefits.",
       price: "19.99",
       image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+1"
     },
     {
-      id: "2",
+      id: "gid://shopify/ProductVariant/2",
       title: "Sample Product 2",
       description: "Another sample product with a detailed description to show how the content would appear on the product page.",
       price: "29.99",
       image: "https://placehold.co/500x500/e2e8f0/1e293b?text=Product+2"
     },
     {
-      id: "3",
+      id: "gid://shopify/ProductVariant/3",
       title: "Sample Product 3",
       description: "A third sample product with details about what makes it special and why customers should buy it.",
       price: "39.99",
