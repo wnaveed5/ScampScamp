@@ -13,7 +13,11 @@ import EarlyAccessModal from "@/components/EarlyAccessModal";
 import HeroSection from "@/components/HeroSection";
 import ProductsSection from "@/components/ProductsSection";
 
-const Homepage = () => {
+interface HomepageProps {
+  onLock?: () => void;
+}
+
+const Homepage = ({ onLock }: HomepageProps) => {
   const shop = useShopify();
   const [showGrid, setShowGrid] = useState(false);
   const productsSectionRef = useRef<HTMLDivElement>(null);
@@ -147,7 +151,7 @@ const Homepage = () => {
   return (
     <>
       <div className="bg-black text-white">
-        <Header alwaysBlack={showGrid} />
+        <Header alwaysBlack={showGrid} onLock={onLock} />
 
         <div className="relative overflow-hidden">
           <div 
