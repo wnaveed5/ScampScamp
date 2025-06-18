@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, Eye, EyeOff, AlertCircle, Key, Users, X, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
+"use client"
+
+import type React from "react"
+import { useState, useRef, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Eye, EyeOff, Lock } from "lucide-react"
+import { toast } from "sonner"
+import { klaviyoAPI } from "@/lib/klaviyo"
 
 interface LockScreenProps {
   onUnlock: () => void;
@@ -11,298 +15,251 @@ interface LockScreenProps {
 }
 
 const LockScreen = ({ onUnlock, isLocked }: LockScreenProps) => {
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lockoutTime, setLockoutTime] = useState<number | null>(null);
-  const [showKlaviyoForm, setShowKlaviyoForm] = useState(false);
-  const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  // Default password - in a real app, this would be stored securely
-  const CORRECT_PASSWORD = "weblinker2024";
-  const KLAVIYO_FORM_URL = "https://www.klaviyo.com/forms/XiCei5";
+  const [mode, setMode] = useState<"signup" | "password">("signup")
+  const [email, setEmail] = useState("")
+  const [isSignupLoading, setIsSignupLoading] = useState(false)
+  const [signupSuccess, setSignupSuccess] = useState(false)
 
   useEffect(() => {
-    // Check if user is locked out
-    const lockoutEnd = localStorage.getItem("lockoutEnd");
-    if (lockoutEnd) {
-      const endTime = parseInt(lockoutEnd);
-      if (Date.now() < endTime) {
-        setLockoutTime(endTime);
-      } else {
-        localStorage.removeItem("lockoutEnd");
-        setAttempts(0);
-      }
+    if (videoRef.current) {
+      videoRef.current.play().catch(console.error)
     }
-  }, []);
+  }, [])
 
-  useEffect(() => {
-    if (lockoutTime) {
-      const interval = setInterval(() => {
-        if (Date.now() >= lockoutTime) {
-          setLockoutTime(null);
-          setAttempts(0);
-          localStorage.removeItem("lockoutEnd");
-        }
-      }, 1000);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
-      return () => clearInterval(interval);
-    }
-  }, [lockoutTime]);
+    // Simulate password check - replace with your actual logic
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (lockoutTime) return;
-
-    setIsLoading(true);
-    
-    // Simulate a small delay for security
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (password === CORRECT_PASSWORD) {
-      toast.success("Welcome back!");
-      localStorage.setItem("isUnlocked", "true");
-      localStorage.removeItem("lockoutEnd");
-      setAttempts(0);
-      onUnlock();
+    if (password === "scamp2024") {
+      toast.success("Welcome to SCAMP!")
+      localStorage.setItem("isUnlocked", "true")
+      onUnlock()
     } else {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      
-      if (newAttempts >= 5) {
-        const lockoutDuration = 5 * 60 * 1000; // 5 minutes
-        const lockoutEnd = Date.now() + lockoutDuration;
-        setLockoutTime(lockoutEnd);
-        localStorage.setItem("lockoutEnd", lockoutEnd.toString());
-        toast.error("Too many failed attempts. Please try again in 5 minutes.");
-      } else {
-        toast.error(`Incorrect password. ${5 - newAttempts} attempts remaining.`);
-      }
-    }
-    
-    setIsLoading(false);
-  };
-
-  const handleKlaviyoSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email.trim() || !firstName.trim()) {
-      toast.error("Please fill in all fields");
-      return;
+      setError("Invalid access code. Please try again.")
     }
 
-    setIsLoading(true);
-    
-    try {
-      // Store the user data
-      localStorage.setItem("earlyAccessEmail", email);
-      localStorage.setItem("earlyAccessFirstName", firstName);
-      localStorage.setItem("isUnlocked", "true");
-      
-      // Show success message
-      toast.success("Welcome to early access!");
-      
-      // Redirect to Klaviyo form in new tab
-      const klaviyoUrl = `${KLAVIYO_FORM_URL}?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}`;
-      window.open(klaviyoUrl, '_blank');
-      
-      // Unlock the app
-      onUnlock();
-      
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const formatTimeRemaining = () => {
-    if (!lockoutTime) return "";
-    const remaining = Math.max(0, lockoutTime - Date.now());
-    const minutes = Math.floor(remaining / 60000);
-    const seconds = Math.floor((remaining % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
-  if (!isLocked) return null;
-
-  if (showKlaviyoForm) {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <div>
-                <CardTitle className="text-xl font-bold">Join Early Access</CardTitle>
-                <CardDescription className="text-white/70">
-                  Get notified when Weblinker launches
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowKlaviyoForm(false)}
-                className="text-white/70 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleKlaviyoSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-white/80 mb-2">
-                    First Name
-                  </label>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    placeholder="Enter your first name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={isLoading}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
-                    Email Address
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    required
-                  />
-                </div>
-                
-                <Button
-                  type="submit"
-                  className="w-full bg-white text-black hover:bg-white/90"
-                  disabled={!email.trim() || !firstName.trim() || isLoading}
-                >
-                  {isLoading ? "Joining..." : (
-                    <>
-                      Join Early Access
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-4 text-center">
-                <Button
-                  variant="ghost"
-                  className="text-white/70 hover:text-white"
-                  onClick={() => setShowKlaviyoForm(false)}
-                  disabled={isLoading}
-                >
-                  <Key className="w-4 h-4 mr-2" />
-                  Back to Password
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    setIsLoading(false)
   }
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSignupLoading(true)
+    setError("")
+
+    try {
+      // Use the centralized Klaviyo API
+      await klaviyoAPI.addSubscriber(email)
+      
+      setSignupSuccess(true)
+      toast.success("You're on the list!")
+      localStorage.setItem("earlyAccessEmail", email)
+      
+      // Optionally unlock after successful signup
+      setTimeout(() => {
+        localStorage.setItem("isUnlocked", "true")
+        onUnlock()
+      }, 2000)
+      
+    } catch (error) {
+      console.error('Klaviyo signup error:', error)
+      setError("Something went wrong. Please try again.")
+      toast.error("Failed to sign up. Please try again.")
+    } finally {
+      setIsSignupLoading(false)
+    }
+  }
+
+  if (!isLocked) return null
+
   return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="bg-white/10 backdrop-blur-lg border-white/20 text-white">
-          <CardHeader className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-2xl font-bold">Welcome to Weblinker</CardTitle>
-              <CardDescription className="text-white/70 mt-2">
-                Enter password or join early access
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={!!lockoutTime || isLoading}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-12"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white"
-                  disabled={!!lockoutTime || isLoading}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Video Background */}
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover opacity-90"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src="/videos/scamp-hero.mov" type="video/mp4" />
+        {/* Fallback for browsers that don't support video */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-900 to-red-900" />
+      </video>
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/20" />
+
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-white/85 backdrop-blur-sm border-0 shadow-2xl">
+          <CardContent className="p-8">
+            {/* Logo/Brand */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <img src="/logo/scamp-logo.png" alt="SCAMP" className="h-16 w-auto" />
               </div>
-              
-              {lockoutTime ? (
-                <div className="text-center space-y-2">
-                  <div className="flex items-center justify-center gap-2 text-red-400">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Account temporarily locked</span>
+              <div className="w-12 h-0.5 bg-black mx-auto mb-4" />
+              <p className="text-gray-600 text-sm uppercase tracking-wider">Early Access</p>
+            </div>
+
+            {/* Access Form */}
+            {mode === "signup" ? (
+              // Email Signup Form
+              <>
+                {!signupSuccess ? (
+                  <form onSubmit={handleSignup} className="space-y-6">
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium text-gray-700 block">
+                        Email Address
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email for early access"
+                        className="border-gray-300 focus:border-black focus:ring-black"
+                        required
+                      />
+                      {error && <p className="text-red-500 text-sm">{error}</p>}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3"
+                      disabled={isSignupLoading}
+                    >
+                      {isSignupLoading ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Signing up...
+                        </div>
+                      ) : (
+                        "Get Early Access"
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="text-center space-y-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">You're on the list!</h3>
+                    <p className="text-sm text-gray-600">We'll notify you when SCAMP launches.</p>
                   </div>
-                  <p className="text-sm text-white/70">
-                    Try again in {formatTimeRemaining()}
-                  </p>
+                )}
+
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => setMode("password")}
+                    className="text-xs text-gray-500 hover:text-black transition-colors underline"
+                  >
+                    Already have access? Enter password
+                  </button>
                 </div>
-              ) : (
-                <Button
-                  type="submit"
-                  className="w-full bg-white text-black hover:bg-white/90"
-                  disabled={!password.trim() || isLoading}
-                >
-                  {isLoading ? "Unlocking..." : "Unlock"}
-                </Button>
-              )}
-            </form>
-            
-            {attempts > 0 && !lockoutTime && (
-              <p className="text-sm text-red-400 text-center mt-2">
-                {5 - attempts} attempts remaining
-              </p>
+              </>
+            ) : (
+              // Password Form
+              <>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label htmlFor="password" className="text-sm font-medium text-gray-700 block">
+                      Access Code
+                    </label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your access code"
+                        className="pr-10 border-gray-300 focus:border-black focus:ring-black"
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
+                      </Button>
+                    </div>
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Verifying...
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <Lock className="w-4 h-4 mr-2" />
+                        Enter
+                      </div>
+                    )}
+                  </Button>
+                </form>
+
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => setMode("signup")}
+                    className="text-xs text-gray-500 hover:text-black transition-colors underline"
+                  >
+                    Don't have access? Sign up for early access
+                  </button>
+                </div>
+              </>
             )}
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/20" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-black px-2 text-white/50">Or</span>
+            {/* Footer */}
+            <div className="mt-8 text-center">
+              <p className="text-xs text-gray-500">
+                {mode === "signup"
+                  ? "Be the first to know when we launch."
+                  : "Contact us if you need help accessing your account."}
+              </p>
+              <div className="mt-4 flex justify-center space-x-4">
+                <a href="#" className="text-xs text-gray-400 hover:text-black transition-colors">
+                  Instagram
+                </a>
+                <a href="#" className="text-xs text-gray-400 hover:text-black transition-colors">
+                  Twitter
+                </a>
+                <a href="#" className="text-xs text-gray-400 hover:text-black transition-colors">
+                  Email
+                </a>
               </div>
             </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-white/20 text-white hover:bg-white/10"
-              onClick={() => setShowKlaviyoForm(true)}
-              disabled={isLoading}
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Join Early Access
-            </Button>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LockScreen; 
+export default LockScreen 
