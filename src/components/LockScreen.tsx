@@ -92,7 +92,7 @@ const LockScreen = ({ onUnlock, isLocked }: LockScreenProps) => {
         loop
         playsInline
       >
-        <source src="/videos/scamp-hero.mov" type="video/mp4" />
+        <source src="https://cdn.shopify.com/videos/c/o/v/6b14f5ccce224c4a9bd78569505c6dcf.mp4" type="video/mp4" />
         {/* Fallback for browsers that don't support video */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-900 to-red-900" />
       </video>
